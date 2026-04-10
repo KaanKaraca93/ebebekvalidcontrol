@@ -8,6 +8,37 @@ class PLMService {
   }
 
   /**
+   * StyleId için STPACKV2 (barkod paketleri) verisini çeker.
+   * Name='ADT' filtreli — tüm paketlerde en az 1 StylePackContent olmalı.
+   * Style üzerinden expand yapılamadığı için ayrı çağrı gerekir.
+   */
+  async getStylePackV2(styleId) {
+    const authHeader = await tokenService.getAuthorizationHeader();
+
+    const query = [
+      `$filter=StyleId eq ${styleId} and Name eq 'ADT'`,
+      `$expand=StylePackContent($select=StylePackContentId)`,
+      `$select=StylePackId,StyleId`
+    ].join('&');
+
+    const url = `${this.baseUrl}/STPACKV2?${query}`;
+
+    console.log(`📡 PLM GET STPACKV2 → StyleId: ${styleId}`);
+
+    try {
+      const response = await axios.get(url, {
+        headers: { Authorization: authHeader, Accept: 'application/json' }
+      });
+      return response.data?.value || [];
+    } catch (error) {
+      const detail = error.response
+        ? `HTTP ${error.response.status} - ${JSON.stringify(error.response.data)}`
+        : error.message;
+      throw new Error(`PLM GET STPACKV2 hatası: ${detail}`);
+    }
+  }
+
+  /**
    * StyleId'ye göre PLM'den style verisi çeker.
    * OData query: MarketField5, Brand, Colorways, SizeRanges, SKU, Measurements (POM dahil)
    */

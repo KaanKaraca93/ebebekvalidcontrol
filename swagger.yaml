@@ -12,6 +12,7 @@ info:
     - Varyant tipi (MarketField5.Code): S / R / RB / N — çift taraflı renk+beden kontrolü
     - Aktif StyleSKU: en az 1 adet (Status=1, IsDeleted=0)
     - POM ölçüleri: tüm GradeMeasMetric değerleri > 0 olmalı
+    - Barkod (STPACKV2/ADT): ADT tipli StylePack'lerde toplam en az 1 StylePackContent olmalı
   version: 1.0.0
   contact:
     name: ebebek PLM Team
@@ -364,6 +365,7 @@ components:
                 variantCheck:    { $ref: '#/components/schemas/ValidationDetails' }
                 activeSkuCheck:  { $ref: '#/components/schemas/ValidationDetails' }
                 pomMeasureCheck: { $ref: '#/components/schemas/ValidationDetails' }
+                barcodeCheck:    { $ref: '#/components/schemas/ValidationDetails' }
         patch:
           type: object
           properties:

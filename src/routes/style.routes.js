@@ -36,11 +36,15 @@ router.post('/process', async (req, res) => {
   };
 
   try {
-    // ── 1. PLM'den style GET ────────────────────────────────────────────────
+    // ── 1. PLM'den style + STPACKV2 paralel GET ────────────────────────────
     console.log(`\n${'='.repeat(60)}`);
     console.log(`▶  Süreç başlıyor → StyleId: ${styleId}`);
 
-    const style = await plmService.getStyle(styleId);
+    const [style, stylePackData] = await Promise.all([
+      plmService.getStyle(styleId),
+      plmService.getStylePackV2(styleId)
+    ]);
+
     if (!style) {
       return res.status(404).json({ success: false, error: `StyleId ${styleId} PLM'de bulunamadı` });
     }
@@ -50,7 +54,7 @@ router.post('/process', async (req, res) => {
     const etag         = style['@odata.etag'] || null;
 
     // ── 2. Validasyon ────────────────────────────────────────────────────────
-    const validation = runBusinessRules(style);
+    const validation = runBusinessRules(style, stylePackData);
     result.validation = {
       isValid: validation.isValid,
       errors:  validation.errors,
@@ -114,12 +118,17 @@ router.get('/:styleId/validate', async (req, res) => {
 
   try {
     console.log(`\n🔍 Validasyon başlıyor → StyleId: ${styleId}`);
-    const style = await plmService.getStyle(styleId);
+
+    const [style, stylePackData] = await Promise.all([
+      plmService.getStyle(styleId),
+      plmService.getStylePackV2(styleId)
+    ]);
+
     if (!style) {
       return res.status(404).json({ success: false, error: `StyleId ${styleId} bulunamadı` });
     }
 
-    const result = runBusinessRules(style);
+    const result = runBusinessRules(style, stylePackData);
     console.log(result.isValid
       ? `✅ Validasyon BAŞARILI – ${style.StyleCode}`
       : `❌ Validasyon BAŞARISIZ – ${style.StyleCode} | ${result.errors.length} hata`

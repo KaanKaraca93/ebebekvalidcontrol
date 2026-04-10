@@ -201,12 +201,37 @@ function checkPomMeasurements(style) {
   return errors;
 }
 
+// ─── Kural 4: Barkod (STPACKV2 / ADT) ───────────────────────────────────────
+// stylePackData = STPACKV2 response.value dizisi
+function checkBarcode(stylePackData) {
+  // STPACKV2 kaydı hiç yoksa geçersiz
+  if (!stylePackData || stylePackData.length === 0) {
+    return ['Barkod kontrolü: ADT tipinde StylePack kaydı bulunamadı'];
+  }
+
+  // Tüm pack'lerde toplam content sayısı
+  const totalContent = stylePackData.reduce((sum, pack) => {
+    return sum + (pack.StylePackContent?.length || 0);
+  }, 0);
+
+  if (totalContent === 0) {
+    return [
+      `Barkod kontrolü: ${stylePackData.length} StylePack bulundu ancak hiçbirinde StylePackContent yok ` +
+      `(tüm içerikler boş veya null)`
+    ];
+  }
+
+  return [];
+}
+
 // ─── Ana fonksiyon ───────────────────────────────────────────────────────────
-function runBusinessRules(style) {
-  const variantErrors = checkVariantType(style);
-  const skuErrors     = checkActiveSku(style);
-  const pomErrors     = checkPomMeasurements(style);
-  const allErrors     = [...variantErrors, ...skuErrors, ...pomErrors];
+// stylePackData: plmService.getStylePackV2() sonucu
+function runBusinessRules(style, stylePackData = []) {
+  const variantErrors  = checkVariantType(style);
+  const skuErrors      = checkActiveSku(style);
+  const pomErrors      = checkPomMeasurements(style);
+  const barcodeErrors  = checkBarcode(stylePackData);
+  const allErrors      = [...variantErrors, ...skuErrors, ...pomErrors, ...barcodeErrors];
 
   return {
     styleId:     style.StyleId,
@@ -215,9 +240,10 @@ function runBusinessRules(style) {
     isValid:     allErrors.length === 0,
     errors:      allErrors,
     details: {
-      variantCheck:    { passed: variantErrors.length === 0, errors: variantErrors },
-      activeSkuCheck:  { passed: skuErrors.length === 0,    errors: skuErrors },
-      pomMeasureCheck: { passed: pomErrors.length === 0,    errors: pomErrors }
+      variantCheck:    { passed: variantErrors.length === 0,  errors: variantErrors },
+      activeSkuCheck:  { passed: skuErrors.length === 0,     errors: skuErrors },
+      pomMeasureCheck: { passed: pomErrors.length === 0,     errors: pomErrors },
+      barcodeCheck:    { passed: barcodeErrors.length === 0, errors: barcodeErrors }
     }
   };
 }
