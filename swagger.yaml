@@ -1,0 +1,427 @@
+openapi: 3.0.3
+info:
+  title: ebebek PLM Validation & Process API
+  description: |
+    Infor Fashion PLM (TRN) entegrasyon servisi.
+
+    Gelen StyleId için PLM'den style verisi çeker, iş kurallarını çalıştırır
+    ve sonuca göre PLM'de status günceller (119 = geçerli, 117 = geçersiz).
+    Ardından syncSearchData job'ını tetikler.
+
+    **İş Kuralları:**
+    - Varyant tipi (MarketField5.Code): S / R / RB / N — çift taraflı renk+beden kontrolü
+    - Aktif StyleSKU: en az 1 adet (Status=1, IsDeleted=0)
+    - POM ölçüleri: tüm GradeMeasMetric değerleri > 0 olmalı
+  version: 1.0.0
+  contact:
+    name: ebebek PLM Team
+
+servers:
+  - url: https://ebebekvalidcontrol-dae721585e55.herokuapp.com
+    description: Production (Heroku)
+  - url: http://localhost:3000
+    description: Local development
+
+tags:
+  - name: Process
+    description: Ana iş akışı — validasyon + PLM güncelleme
+  - name: Style
+    description: PLM style sorgulama ve validasyon (debug)
+  - name: Token
+    description: OAuth2 token yönetimi
+  - name: Health
+    description: Servis durumu
+
+paths:
+
+  # ── ANA ENDPOINT ─────────────────────────────────────────────────────────────
+  /api/style/process:
+    post:
+      tags: [Process]
+      summary: Style validasyonu + PLM status güncelleme
+      description: |
+        1. PLM'den style verisini çeker (GET STYLE)
+        2. İş kurallarını çalıştırır
+        3. Sonuca göre PATCH STYLE → Status 119 (geçerli) veya 117 (geçersiz)
+        4. PATCH 204 dönerse POST syncSearchData job'ı tetiklenir
+        5. Her durumda HTTP 200 döner
+
+        **Infor ION input schema:** `StyleId-Brand-Status`
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StyleIdBrandStatusInput'
+            examples:
+              ornek:
+                summary: Örnek istek
+                value:
+                  StyleId: "44562"
+                  BrandId: 13
+                  Status: 1
+                  Filter: ""
+      responses:
+        '200':
+          description: Süreç tamamlandı (validasyon başarılı veya başarısız olsa da 200 döner)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProcessResponse'
+              examples:
+                gecerli:
+                  summary: Geçerli ürün
+                  value:
+                    success: true
+                    styleId: 44562
+                    styleCode: "ADM-P-TEST090426"
+                    variantType: "R"
+                    validation:
+                      isValid: true
+                      errors: []
+                      details:
+                        variantCheck:   { passed: true, errors: [] }
+                        activeSkuCheck: { passed: true, errors: [] }
+                        pomMeasureCheck: { passed: true, errors: [] }
+                    patch:
+                      attempted: true
+                      httpStatus: 204
+                      targetStatus: 119
+                      error: null
+                    sync:
+                      attempted: true
+                      httpStatus: 200
+                      error: null
+                    timestamp: "2026-04-10T05:51:39.946Z"
+                gecersiz:
+                  summary: Geçersiz ürün
+                  value:
+                    success: true
+                    styleId: 44562
+                    styleCode: "ADM-P-TEST090426"
+                    variantType: null
+                    validation:
+                      isValid: false
+                      errors:
+                        - "MarketField5.Code alanı boş veya tanımsız – varyant tipi belirlenemiyor"
+                      details:
+                        variantCheck:   { passed: false, errors: ["MarketField5.Code alanı boş veya tanımsız"] }
+                        activeSkuCheck: { passed: true,  errors: [] }
+                        pomMeasureCheck: { passed: true, errors: [] }
+                    patch:
+                      attempted: true
+                      httpStatus: 204
+                      targetStatus: 117
+                      error: null
+                    sync:
+                      attempted: true
+                      httpStatus: 200
+                      error: null
+                    timestamp: "2026-04-10T06:00:00.000Z"
+        '400':
+          description: StyleId eksik veya geçersiz
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Style PLM'de bulunamadı
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Sunucu hatası
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ── DEBUG ENDPOINTS ──────────────────────────────────────────────────────────
+  /api/style/{styleId}/validate:
+    get:
+      tags: [Style]
+      summary: Sadece validasyon (PLM'e yazma yapmaz)
+      description: |
+        PLM'den style çeker ve iş kurallarını çalıştırır.
+        PATCH veya syncSearchData **yapmaz** — debug ve test için kullanılır.
+      parameters:
+        - $ref: '#/components/parameters/StyleIdPath'
+      responses:
+        '200':
+          description: Validasyon başarılı
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationResult'
+        '422':
+          description: Validasyon başarısız
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationResult'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /api/style/{styleId}:
+    get:
+      tags: [Style]
+      summary: Ham PLM style verisi
+      description: PLM'den style verisini olduğu gibi döner (debug için)
+      parameters:
+        - $ref: '#/components/parameters/StyleIdPath'
+      responses:
+        '200':
+          description: Style verisi
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:    { type: object, description: Ham PLM OData response }
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  # ── TOKEN ────────────────────────────────────────────────────────────────────
+  /api/token:
+    get:
+      tags: [Token]
+      summary: Access token al
+      description: Cache'de geçerli token varsa döner, yoksa PLM SSO'dan yeni alır
+      responses:
+        '200':
+          description: Token başarıyla alındı
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /api/token/info:
+    get:
+      tags: [Token]
+      summary: Token durumu (token değerini vermez)
+      responses:
+        '200':
+          description: Token bilgisi
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:   { type: boolean }
+                  hasToken:  { type: boolean }
+                  isValid:   { type: boolean }
+                  expiresAt: { type: string, format: date-time }
+                  tokenType: { type: string }
+
+  /api/token/refresh:
+    post:
+      tags: [Token]
+      summary: Token'ı iptal edip yenisini al
+      responses:
+        '200':
+          description: Token yenilendi
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  # ── HEALTH ───────────────────────────────────────────────────────────────────
+  /health:
+    get:
+      tags: [Health]
+      summary: Servis sağlık kontrolü
+      responses:
+        '200':
+          description: Servis çalışıyor
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:    { type: string, example: OK }
+                  env:       { type: string, example: TRN }
+                  tenant:    { type: string, example: HA286TFZ2VY8TRHK_TRN }
+                  timestamp: { type: string, format: date-time }
+
+# ── COMPONENTS ───────────────────────────────────────────────────────────────
+components:
+
+  parameters:
+    StyleIdPath:
+      name: styleId
+      in: path
+      required: true
+      description: PLM Style ID (sayısal)
+      schema:
+        type: integer
+        example: 44562
+
+  schemas:
+
+    StyleIdBrandStatusInput:
+      type: object
+      description: Infor ION tarafından gönderilen input — StyleId-Brand-Status şeması
+      required: [StyleId]
+      properties:
+        Filter:
+          type: string
+          maxLength: 50
+          description: Opsiyonel filtre alanı
+          example: ""
+        StyleId:
+          type: string
+          maxLength: 25
+          description: PLM Style ID (string olarak gelir)
+          example: "44562"
+        BrandId:
+          type: integer
+          description: Marka ID
+          example: 13
+        Status:
+          type: integer
+          description: Mevcut durum
+          example: 1
+
+    ValidationDetails:
+      type: object
+      properties:
+        passed:
+          type: boolean
+        errors:
+          type: array
+          items:
+            type: string
+
+    ValidationResult:
+      type: object
+      properties:
+        success:
+          type: boolean
+        styleId:
+          type: integer
+          example: 44562
+        styleCode:
+          type: string
+          example: ADM-P-TEST090426
+        variantType:
+          type: string
+          nullable: true
+          enum: [S, R, RB, N]
+          description: |
+            S  = Beden varyantlı
+            R  = Renk varyantlı
+            RB = Renk + Beden varyantlı
+            N  = Varyantsız
+        isValid:
+          type: boolean
+        errors:
+          type: array
+          items:
+            type: string
+        details:
+          type: object
+          properties:
+            variantCheck:
+              $ref: '#/components/schemas/ValidationDetails'
+            activeSkuCheck:
+              $ref: '#/components/schemas/ValidationDetails'
+            pomMeasureCheck:
+              $ref: '#/components/schemas/ValidationDetails'
+        timestamp:
+          type: string
+          format: date-time
+
+    ProcessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        styleId:
+          type: integer
+        styleCode:
+          type: string
+        variantType:
+          type: string
+          nullable: true
+        validation:
+          type: object
+          properties:
+            isValid:  { type: boolean }
+            errors:   { type: array, items: { type: string } }
+            details:
+              type: object
+              properties:
+                variantCheck:    { $ref: '#/components/schemas/ValidationDetails' }
+                activeSkuCheck:  { $ref: '#/components/schemas/ValidationDetails' }
+                pomMeasureCheck: { $ref: '#/components/schemas/ValidationDetails' }
+        patch:
+          type: object
+          properties:
+            attempted:
+              type: boolean
+            httpStatus:
+              type: integer
+              nullable: true
+              description: PLM'den dönen HTTP kodu (204 beklenir)
+            targetStatus:
+              type: integer
+              nullable: true
+              description: PLM'e yazılan status değeri (119 veya 117)
+              enum: [119, 117]
+            error:
+              type: string
+              nullable: true
+        sync:
+          type: object
+          properties:
+            attempted:
+              type: boolean
+            httpStatus:
+              type: integer
+              nullable: true
+              description: syncSearchData job HTTP kodu
+            error:
+              type: string
+              nullable: true
+        timestamp:
+          type: string
+          format: date-time
+
+    TokenResponse:
+      type: object
+      properties:
+        success:     { type: boolean }
+        accessToken: { type: string }
+        tokenType:   { type: string, example: Bearer }
+        expiresAt:   { type: string, format: date-time }
+        timestamp:   { type: string, format: date-time }
+
+    ErrorResponse:
+      type: object
+      properties:
+        success: { type: boolean, example: false }
+        error:   { type: string }
+
+  responses:
+    NotFound:
+      description: Style bulunamadı
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ServerError:
+      description: Sunucu hatası
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
