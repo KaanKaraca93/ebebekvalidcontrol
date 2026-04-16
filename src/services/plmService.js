@@ -1,19 +1,18 @@
 const axios = require('axios');
-const tokenService = require('./tokenService');
-const PLM_CONFIG = require('../config/plm.config');
 
 class PLMService {
-  constructor() {
-    this.baseUrl = PLM_CONFIG.plmBaseUrl;
+  constructor(tokenService, config) {
+    this.tokenService = tokenService;
+    this.baseUrl = config.plmBaseUrl;
+    this.tenantId = config.tenantId;
   }
 
   /**
    * StyleId için STPACKV2 (barkod paketleri) verisini çeker.
    * Name='ADT' filtreli — tüm paketlerde en az 1 StylePackContent olmalı.
-   * Style üzerinden expand yapılamadığı için ayrı çağrı gerekir.
    */
   async getStylePackV2(styleId) {
-    const authHeader = await tokenService.getAuthorizationHeader();
+    const authHeader = await this.tokenService.getAuthorizationHeader();
 
     const query = [
       `$filter=StyleId eq ${styleId} and Name eq 'ADT'`,
@@ -23,7 +22,7 @@ class PLMService {
 
     const url = `${this.baseUrl}/STPACKV2?${query}`;
 
-    console.log(`📡 PLM GET STPACKV2 → StyleId: ${styleId}`);
+    console.log(`📡 [${this.tenantId}] PLM GET STPACKV2 → StyleId: ${styleId}`);
 
     try {
       const response = await axios.get(url, {
@@ -40,10 +39,9 @@ class PLMService {
 
   /**
    * StyleId'ye göre PLM'den style verisi çeker.
-   * OData query: MarketField5, Brand, Colorways, SizeRanges, SKU, Measurements (POM dahil)
    */
   async getStyle(styleId) {
-    const authHeader = await tokenService.getAuthorizationHeader();
+    const authHeader = await this.tokenService.getAuthorizationHeader();
 
     const expand = [
       'marketfield5',
@@ -72,7 +70,7 @@ class PLMService {
     const query = `$select=StyleId,StyleCode&$filter=StyleId eq ${styleId}&$expand=${expand}`;
     const url = `${this.baseUrl}/STYLE?${query}`;
 
-    console.log(`📡 PLM GET Style → StyleId: ${styleId}`);
+    console.log(`📡 [${this.tenantId}] PLM GET Style → StyleId: ${styleId}`);
 
     try {
       const response = await axios.get(url, {
@@ -97,4 +95,4 @@ class PLMService {
   }
 }
 
-module.exports = new PLMService();
+module.exports = PLMService;

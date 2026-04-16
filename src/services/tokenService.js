@@ -1,8 +1,8 @@
 const axios = require('axios');
-const PLM_CONFIG = require('../config/plm.config');
 
 class TokenService {
-  constructor() {
+  constructor(config) {
+    this.config = config;
     this.accessToken = null;
     this.tokenExpiry = null;
     this.tokenType = 'Bearer';
@@ -16,24 +16,24 @@ class TokenService {
 
   async getAccessToken() {
     if (this.isTokenValid()) {
-      console.log('✅ Cached token kullanılıyor');
+      console.log(`✅ [${this.config.tenantId}] Cached token kullanılıyor`);
       return this.accessToken;
     }
 
-    console.log('🔄 Yeni token alınıyor...');
+    console.log(`🔄 [${this.config.tenantId}] Yeni token alınıyor...`);
     return await this._fetchNewToken();
   }
 
   async _fetchNewToken() {
-    const tokenUrl = `${PLM_CONFIG.providerUrl}${PLM_CONFIG.endpoints.token}`;
+    const tokenUrl = `${this.config.providerUrl}${this.config.endpoints.token}`;
 
     const params = new URLSearchParams();
     params.append('grant_type', 'password');
-    params.append('username', PLM_CONFIG.serviceAccountAccessKey);
-    params.append('password', PLM_CONFIG.serviceAccountSecretKey);
+    params.append('username', this.config.serviceAccountAccessKey);
+    params.append('password', this.config.serviceAccountSecretKey);
 
     const basicAuth = Buffer.from(
-      `${PLM_CONFIG.clientId}:${PLM_CONFIG.clientSecret}`
+      `${this.config.clientId}:${this.config.clientSecret}`
     ).toString('base64');
 
     try {
@@ -54,7 +54,7 @@ class TokenService {
       this.tokenType = token_type || 'Bearer';
       this.tokenExpiry = Date.now() + (expires_in || 3600) * 1000;
 
-      console.log(`✅ Token alındı | tip: ${this.tokenType} | süre: ${expires_in}s`);
+      console.log(`✅ [${this.config.tenantId}] Token alındı | tip: ${this.tokenType} | süre: ${expires_in}s`);
       console.log(`⏰ Token geçerlilik: ${new Date(this.tokenExpiry).toISOString()}`);
 
       return this.accessToken;
@@ -82,16 +82,16 @@ class TokenService {
 
   async revokeToken() {
     if (!this.accessToken) {
-      console.log('ℹ️  Revoke edilecek token yok');
+      console.log(`ℹ️  [${this.config.tenantId}] Revoke edilecek token yok`);
       return;
     }
 
-    const revokeUrl = `${PLM_CONFIG.providerUrl}${PLM_CONFIG.endpoints.revoke}`;
+    const revokeUrl = `${this.config.providerUrl}${this.config.endpoints.revoke}`;
     const params = new URLSearchParams();
     params.append('token', this.accessToken);
 
     const basicAuth = Buffer.from(
-      `${PLM_CONFIG.clientId}:${PLM_CONFIG.clientSecret}`
+      `${this.config.clientId}:${this.config.clientSecret}`
     ).toString('base64');
 
     try {
@@ -102,7 +102,7 @@ class TokenService {
         }
       });
 
-      console.log('✅ Token revoke edildi');
+      console.log(`✅ [${this.config.tenantId}] Token revoke edildi`);
     } finally {
       this.accessToken = null;
       this.tokenExpiry = null;
@@ -110,4 +110,4 @@ class TokenService {
   }
 }
 
-module.exports = new TokenService();
+module.exports = TokenService;

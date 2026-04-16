@@ -1,14 +1,18 @@
 const express = require('express');
 const router = express.Router();
-const plmService = require('../services/plmService');
-const plmPatchService = require('../services/plmPatchService');
+const { getEnv } = require('../services/envFactory');
 const { runBusinessRules } = require('../services/businessRules');
 
 /**
  * POST /api/style/process
  *
  * Input (Infor ION schema):
- *   { "StyleId": "44562", "BrandId": 13, "Status": 1, "Filter": "..." }
+ *   { "StyleId": "44562", "BrandId": 13, "Status": 1, "Filter": "...",
+ *     "environment": "PRD", "Schema": "FSH4" }
+ *
+ * Yönlendirme:
+ *   environment === 'PRD' && Schema === 'FSH4'  → PRD (canlı)
+ *   diğer tüm senaryolar                        → TST
  *
  * Akış:
  *   1. PLM'den style GET
@@ -25,8 +29,12 @@ router.post('/process', async (req, res) => {
     return res.status(400).json({ success: false, error: 'StyleId zorunludur ve sayısal olmalıdır' });
   }
 
+  const { environment, Schema } = req.body;
+  const { plmService, plmPatchService, envName } = getEnv(environment, Schema);
+
   const result = {
     styleId,
+    env:              envName,
     styleCode:        null,
     variantType:      null,
     validation:       null,
@@ -36,9 +44,8 @@ router.post('/process', async (req, res) => {
   };
 
   try {
-    // ── 1. PLM'den style + STPACKV2 paralel GET ────────────────────────────
     console.log(`\n${'='.repeat(60)}`);
-    console.log(`▶  Süreç başlıyor → StyleId: ${styleId}`);
+    console.log(`▶  [${envName}] Süreç başlıyor → StyleId: ${styleId}`);
 
     const [style, stylePackData] = await Promise.all([
       plmService.getStyle(styleId),
@@ -53,7 +60,6 @@ router.post('/process', async (req, res) => {
     result.variantType = style.MarketField5?.Code || null;
     const etag         = style['@odata.etag'] || null;
 
-    // ── 2. Validasyon ────────────────────────────────────────────────────────
     const validation = runBusinessRules(style, stylePackData);
     result.validation = {
       isValid: validation.isValid,
@@ -62,18 +68,16 @@ router.post('/process', async (req, res) => {
     };
 
     console.log(validation.isValid
-      ? `✅ Validasyon BAŞARILI – ${style.StyleCode}`
-      : `❌ Validasyon BAŞARISIZ – ${style.StyleCode} | ${validation.errors.length} hata`
+      ? `✅ [${envName}] Validasyon BAŞARILI – ${style.StyleCode}`
+      : `❌ [${envName}] Validasyon BAŞARISIZ – ${style.StyleCode} | ${validation.errors.length} hata`
     );
 
-    // ── 3. PATCH Status ──────────────────────────────────────────────────────
     result.patch.attempted = true;
     try {
       const patchResult = await plmPatchService.patchStyleStatus(styleId, validation.isValid, etag);
       result.patch.httpStatus   = patchResult.status;
       result.patch.targetStatus = patchResult.targetStatus;
 
-      // ── 4. syncSearchData (sadece 204 gelirse) ───────────────────────────
       if (patchResult.status === 204) {
         result.sync.attempted = true;
         try {
@@ -82,33 +86,33 @@ router.post('/process', async (req, res) => {
         } catch (syncErr) {
           result.sync.httpStatus = syncErr.httpStatus || null;
           result.sync.error      = syncErr.message;
-          console.warn(`⚠️  syncSearchData başarısız, süreç devam ediyor`);
+          console.warn(`⚠️  [${envName}] syncSearchData başarısız, süreç devam ediyor`);
         }
       } else {
-        console.warn(`⚠️  PATCH ${patchResult.status} döndü (204 değil) – sync atlandı`);
+        console.warn(`⚠️  [${envName}] PATCH ${patchResult.status} döndü (204 değil) – sync atlandı`);
       }
 
     } catch (patchErr) {
       result.patch.httpStatus = patchErr.httpStatus || null;
       result.patch.error      = patchErr.message;
-      console.warn(`⚠️  PATCH başarısız, yine de 200 dönülüyor`);
+      console.warn(`⚠️  [${envName}] PATCH başarısız, yine de 200 dönülüyor`);
     }
 
   } catch (error) {
-    console.error('Süreç hatası:', error.message);
+    console.error(`[${envName}] Süreç hatası:`, error.message);
     return res.status(500).json({ success: false, error: error.message });
   }
 
-  console.log(`▶  Süreç tamamlandı → ${result.styleCode} | valid: ${result.validation?.isValid}`);
+  console.log(`▶  [${envName}] Süreç tamamlandı → ${result.styleCode} | valid: ${result.validation?.isValid}`);
   console.log(`${'='.repeat(60)}\n`);
 
-  // Her durumda 200
   res.status(200).json({ success: true, ...result });
 });
 
 /**
  * GET /api/style/:styleId/validate
  * Sadece validasyon – patch yapmaz (debug/test için)
+ * Query param: ?env=PRD&schema=FSH4 → PRD ortamına gider
  */
 router.get('/:styleId/validate', async (req, res) => {
   const styleId = parseInt(req.params.styleId, 10);
@@ -116,8 +120,11 @@ router.get('/:styleId/validate', async (req, res) => {
     return res.status(400).json({ success: false, error: 'Geçersiz styleId' });
   }
 
+  const { env, schema } = req.query;
+  const { plmService, envName } = getEnv(env, schema);
+
   try {
-    console.log(`\n🔍 Validasyon başlıyor → StyleId: ${styleId}`);
+    console.log(`\n🔍 [${envName}] Validasyon başlıyor → StyleId: ${styleId}`);
 
     const [style, stylePackData] = await Promise.all([
       plmService.getStyle(styleId),
@@ -130,17 +137,18 @@ router.get('/:styleId/validate', async (req, res) => {
 
     const result = runBusinessRules(style, stylePackData);
     console.log(result.isValid
-      ? `✅ Validasyon BAŞARILI – ${style.StyleCode}`
-      : `❌ Validasyon BAŞARISIZ – ${style.StyleCode} | ${result.errors.length} hata`
+      ? `✅ [${envName}] Validasyon BAŞARILI – ${style.StyleCode}`
+      : `❌ [${envName}] Validasyon BAŞARISIZ – ${style.StyleCode} | ${result.errors.length} hata`
     );
 
     res.status(result.isValid ? 200 : 422).json({
       success: result.isValid,
+      env: envName,
       ...result,
       timestamp: new Date().toISOString()
     });
   } catch (error) {
-    console.error('Validasyon hatası:', error.message);
+    console.error(`[${envName}] Validasyon hatası:`, error.message);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -148,6 +156,7 @@ router.get('/:styleId/validate', async (req, res) => {
 /**
  * GET /api/style/:styleId
  * Ham PLM verisi (debug için)
+ * Query param: ?env=PRD&schema=FSH4 → PRD ortamına gider
  */
 router.get('/:styleId', async (req, res) => {
   const styleId = parseInt(req.params.styleId, 10);
@@ -155,14 +164,17 @@ router.get('/:styleId', async (req, res) => {
     return res.status(400).json({ success: false, error: 'Geçersiz styleId' });
   }
 
+  const { env, schema } = req.query;
+  const { plmService, envName } = getEnv(env, schema);
+
   try {
     const style = await plmService.getStyle(styleId);
     if (!style) {
       return res.status(404).json({ success: false, error: `StyleId ${styleId} bulunamadı` });
     }
-    res.json({ success: true, data: style });
+    res.json({ success: true, env: envName, data: style });
   } catch (error) {
-    console.error('GET style hatası:', error.message);
+    console.error(`[${envName}] GET style hatası:`, error.message);
     res.status(500).json({ success: false, error: error.message });
   }
 });

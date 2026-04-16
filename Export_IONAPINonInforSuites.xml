@@ -1,0 +1,465 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ionapiSuites>
+  <ionapiSuite>
+    <suiteName>validcontrol</suiteName>
+    <suiteDescription>validcontrol</suiteDescription>
+    <applicationName>validcontrol</applicationName>
+    <context>validcontrol</context>
+    <suiteType>NonInfor</suiteType>
+    <suiteIcon>
+      <SuiteIconImageGuid>867aba93-9f4c-4576-bc69-5194be6f9d12</SuiteIconImageGuid>
+      <SuiteIconImageBase64>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</SuiteIconImageBase64>
+    </suiteIcon>
+    <proxyProfiles>
+      <proxyProfile>
+        <proxyEndpoints>
+          <proxyEndpoint>
+            <proxyEndpointURL>/</proxyEndpointURL>
+            <proxyAuthenticationType>OAuth2</proxyAuthenticationType>
+            <targetEndpoint>
+              <targetEndpointURL>https://ebebekvalidcontrol-dae721585e55.herokuapp.com</targetEndpointURL>
+              <ignoreCertError>false</ignoreCertError>
+            </targetEndpoint>
+            <documentation>
+              <targetDocumentationName>swag</targetDocumentationName>
+              <targetDocumentationType>SWAGGERDATA</targetDocumentationType>
+              <targetDocumentationURL>openapi: 3.0.3
+info:
+  title: ebebek PLM Validation &amp; Process API
+  description: |
+    Infor Fashion PLM (TRN) entegrasyon servisi.
+
+    Gelen StyleId için PLM'den style verisi çeker, iş kurallarını çalıştırır
+    ve sonuca göre PLM'de status günceller (119 = geçerli, 117 = geçersiz).
+    Ardından syncSearchData job'ını tetikler.
+
+    **İş Kuralları:**
+    - Varyant tipi (MarketField5.Code): S / R / RB / N — çift taraflı renk+beden kontrolü
+    - Aktif StyleSKU: en az 1 adet (Status=1, IsDeleted=0)
+    - POM ölçüleri: tüm GradeMeasMetric değerleri &gt; 0 olmalı
+  version: 1.0.0
+  contact:
+    name: ebebek PLM Team
+
+servers:
+  - url: https://ebebekvalidcontrol-dae721585e55.herokuapp.com
+    description: Production (Heroku)
+  - url: http://localhost:3000
+    description: Local development
+
+tags:
+  - name: Process
+    description: Ana iş akışı — validasyon + PLM güncelleme
+  - name: Style
+    description: PLM style sorgulama ve validasyon (debug)
+  - name: Token
+    description: OAuth2 token yönetimi
+  - name: Health
+    description: Servis durumu
+
+paths:
+
+  # ── ANA ENDPOINT ─────────────────────────────────────────────────────────────
+  /api/style/process:
+    post:
+      tags: [Process]
+      summary: Style validasyonu + PLM status güncelleme
+      description: |
+        1. PLM'den style verisini çeker (GET STYLE)
+        2. İş kurallarını çalıştırır
+        3. Sonuca göre PATCH STYLE → Status 119 (geçerli) veya 117 (geçersiz)
+        4. PATCH 204 dönerse POST syncSearchData job'ı tetiklenir
+        5. Her durumda HTTP 200 döner
+
+        **Infor ION input schema:** `StyleId-Brand-Status`
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StyleIdBrandStatusInput'
+            examples:
+              ornek:
+                summary: Örnek istek
+                value:
+                  StyleId: "44562"
+                  BrandId: 13
+                  Status: 1
+                  Filter: ""
+      responses:
+        '200':
+          description: Süreç tamamlandı (validasyon başarılı veya başarısız olsa da 200 döner)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProcessResponse'
+              examples:
+                gecerli:
+                  summary: Geçerli ürün
+                  value:
+                    success: true
+                    styleId: 44562
+                    styleCode: "ADM-P-TEST090426"
+                    variantType: "R"
+                    validation:
+                      isValid: true
+                      errors: []
+                      details:
+                        variantCheck:   { passed: true, errors: [] }
+                        activeSkuCheck: { passed: true, errors: [] }
+                        pomMeasureCheck: { passed: true, errors: [] }
+                    patch:
+                      attempted: true
+                      httpStatus: 204
+                      targetStatus: 119
+                      error: null
+                    sync:
+                      attempted: true
+                      httpStatus: 200
+                      error: null
+                    timestamp: "2026-04-10T05:51:39.946Z"
+                gecersiz:
+                  summary: Geçersiz ürün
+                  value:
+                    success: true
+                    styleId: 44562
+                    styleCode: "ADM-P-TEST090426"
+                    variantType: null
+                    validation:
+                      isValid: false
+                      errors:
+                        - "MarketField5.Code alanı boş veya tanımsız – varyant tipi belirlenemiyor"
+                      details:
+                        variantCheck:   { passed: false, errors: ["MarketField5.Code alanı boş veya tanımsız"] }
+                        activeSkuCheck: { passed: true,  errors: [] }
+                        pomMeasureCheck: { passed: true, errors: [] }
+                    patch:
+                      attempted: true
+                      httpStatus: 204
+                      targetStatus: 117
+                      error: null
+                    sync:
+                      attempted: true
+                      httpStatus: 200
+                      error: null
+                    timestamp: "2026-04-10T06:00:00.000Z"
+        '400':
+          description: StyleId eksik veya geçersiz
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Style PLM'de bulunamadı
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Sunucu hatası
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ── DEBUG ENDPOINTS ──────────────────────────────────────────────────────────
+  /api/style/{styleId}/validate:
+    get:
+      tags: [Style]
+      summary: Sadece validasyon (PLM'e yazma yapmaz)
+      description: |
+        PLM'den style çeker ve iş kurallarını çalıştırır.
+        PATCH veya syncSearchData **yapmaz** — debug ve test için kullanılır.
+      parameters:
+        - $ref: '#/components/parameters/StyleIdPath'
+      responses:
+        '200':
+          description: Validasyon başarılı
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationResult'
+        '422':
+          description: Validasyon başarısız
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationResult'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /api/style/{styleId}:
+    get:
+      tags: [Style]
+      summary: Ham PLM style verisi
+      description: PLM'den style verisini olduğu gibi döner (debug için)
+      parameters:
+        - $ref: '#/components/parameters/StyleIdPath'
+      responses:
+        '200':
+          description: Style verisi
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:    { type: object, description: Ham PLM OData response }
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  # ── TOKEN ────────────────────────────────────────────────────────────────────
+  /api/token:
+    get:
+      tags: [Token]
+      summary: Access token al
+      description: Cache'de geçerli token varsa döner, yoksa PLM SSO'dan yeni alır
+      responses:
+        '200':
+          description: Token başarıyla alındı
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /api/token/info:
+    get:
+      tags: [Token]
+      summary: Token durumu (token değerini vermez)
+      responses:
+        '200':
+          description: Token bilgisi
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:   { type: boolean }
+                  hasToken:  { type: boolean }
+                  isValid:   { type: boolean }
+                  expiresAt: { type: string, format: date-time }
+                  tokenType: { type: string }
+
+  /api/token/refresh:
+    post:
+      tags: [Token]
+      summary: Token'ı iptal edip yenisini al
+      responses:
+        '200':
+          description: Token yenilendi
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  # ── HEALTH ───────────────────────────────────────────────────────────────────
+  /health:
+    get:
+      tags: [Health]
+      summary: Servis sağlık kontrolü
+      responses:
+        '200':
+          description: Servis çalışıyor
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:    { type: string, example: OK }
+                  env:       { type: string, example: TRN }
+                  tenant:    { type: string, example: HA286TFZ2VY8TRHK_TRN }
+                  timestamp: { type: string, format: date-time }
+
+# ── COMPONENTS ───────────────────────────────────────────────────────────────
+components:
+
+  parameters:
+    StyleIdPath:
+      name: styleId
+      in: path
+      required: true
+      description: PLM Style ID (sayısal)
+      schema:
+        type: integer
+        example: 44562
+
+  schemas:
+
+    StyleIdBrandStatusInput:
+      type: object
+      description: Infor ION tarafından gönderilen input — StyleId-Brand-Status şeması
+      required: [StyleId]
+      properties:
+        Filter:
+          type: string
+          maxLength: 50
+          description: Opsiyonel filtre alanı
+          example: ""
+        StyleId:
+          type: string
+          maxLength: 25
+          description: PLM Style ID (string olarak gelir)
+          example: "44562"
+        BrandId:
+          type: integer
+          description: Marka ID
+          example: 13
+        Status:
+          type: integer
+          description: Mevcut durum
+          example: 1
+
+    ValidationDetails:
+      type: object
+      properties:
+        passed:
+          type: boolean
+        errors:
+          type: array
+          items:
+            type: string
+
+    ValidationResult:
+      type: object
+      properties:
+        success:
+          type: boolean
+        styleId:
+          type: integer
+          example: 44562
+        styleCode:
+          type: string
+          example: ADM-P-TEST090426
+        variantType:
+          type: string
+          nullable: true
+          enum: [S, R, RB, N]
+          description: |
+            S  = Beden varyantlı
+            R  = Renk varyantlı
+            RB = Renk + Beden varyantlı
+            N  = Varyantsız
+        isValid:
+          type: boolean
+        errors:
+          type: array
+          items:
+            type: string
+        details:
+          type: object
+          properties:
+            variantCheck:
+              $ref: '#/components/schemas/ValidationDetails'
+            activeSkuCheck:
+              $ref: '#/components/schemas/ValidationDetails'
+            pomMeasureCheck:
+              $ref: '#/components/schemas/ValidationDetails'
+        timestamp:
+          type: string
+          format: date-time
+
+    ProcessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        styleId:
+          type: integer
+        styleCode:
+          type: string
+        variantType:
+          type: string
+          nullable: true
+        validation:
+          type: object
+          properties:
+            isValid:  { type: boolean }
+            errors:   { type: array, items: { type: string } }
+            details:
+              type: object
+              properties:
+                variantCheck:    { $ref: '#/components/schemas/ValidationDetails' }
+                activeSkuCheck:  { $ref: '#/components/schemas/ValidationDetails' }
+                pomMeasureCheck: { $ref: '#/components/schemas/ValidationDetails' }
+        patch:
+          type: object
+          properties:
+            attempted:
+              type: boolean
+            httpStatus:
+              type: integer
+              nullable: true
+              description: PLM'den dönen HTTP kodu (204 beklenir)
+            targetStatus:
+              type: integer
+              nullable: true
+              description: PLM'e yazılan status değeri (119 veya 117)
+              enum: [119, 117]
+            error:
+              type: string
+              nullable: true
+        sync:
+          type: object
+          properties:
+            attempted:
+              type: boolean
+            httpStatus:
+              type: integer
+              nullable: true
+              description: syncSearchData job HTTP kodu
+            error:
+              type: string
+              nullable: true
+        timestamp:
+          type: string
+          format: date-time
+
+    TokenResponse:
+      type: object
+      properties:
+        success:     { type: boolean }
+        accessToken: { type: string }
+        tokenType:   { type: string, example: Bearer }
+        expiresAt:   { type: string, format: date-time }
+        timestamp:   { type: string, format: date-time }
+
+    ErrorResponse:
+      type: object
+      properties:
+        success: { type: boolean, example: false }
+        error:   { type: string }
+
+  responses:
+    NotFound:
+      description: Style bulunamadı
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ServerError:
+      description: Sunucu hatası
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+</targetDocumentationURL>
+            </documentation>
+          </proxyEndpoint>
+        </proxyEndpoints>
+        <targetEndpointSecurity>
+          <anonymousAuth>anonymousAuth</anonymousAuth>
+        </targetEndpointSecurity>
+        <proxyPolicyProfiles />
+      </proxyProfile>
+    </proxyProfiles>
+    <suitePolicyProfiles />
+  </ionapiSuite>
+</ionapiSuites>

@@ -13,8 +13,7 @@ app.use('/api/style', styleRoutes);
 app.get('/health', (req, res) => {
   res.json({
     status: 'OK',
-    env: 'TRN',
-    tenant: 'HA286TFZ2VY8TRHK_TRN',
+    environments: ['TST (HA286TFZ2VY8TRHK_TRN)', 'PRD (HA286TFZ2VY8TRHK_PRD)'],
     timestamp: new Date().toISOString()
   });
 });
