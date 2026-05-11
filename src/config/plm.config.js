@@ -4,6 +4,7 @@
  */
 
 const PLM_CONFIG = {
+  env: 'TST',
   tenantId: 'HA286TFZ2VY8TRHK_TRN',
   clientName: 'FSH11',
 

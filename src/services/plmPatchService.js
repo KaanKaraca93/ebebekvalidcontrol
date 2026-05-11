@@ -1,7 +1,12 @@
 const axios = require('axios');
 
-const STATUS_VALID   = 119;
-const STATUS_INVALID = 117;
+// TST ortamı status kodları
+const STATUS_VALID_TST   = 119;
+const STATUS_INVALID_TST = 117;
+
+// PRD ortamı status kodları
+const STATUS_VALID_PRD   = 109;
+const STATUS_INVALID_PRD = 107;
 
 class PLMPatchService {
   constructor(tokenService, config) {
@@ -9,15 +14,23 @@ class PLMPatchService {
     this.config = config;
   }
 
+  _resolveStatus(isValid) {
+    const isPrd = this.config.env === 'PRD';
+    if (isValid) return isPrd ? STATUS_VALID_PRD   : STATUS_VALID_TST;
+    return           isPrd ? STATUS_INVALID_PRD : STATUS_INVALID_TST;
+  }
+
   /**
    * STYLE(styleId) kaydına Status patch'i atar.
+   * TST: geçerli=119, geçersiz=117
+   * PRD: geçerli=109, geçersiz=107
    * @param {number} styleId
    * @param {boolean} isValid
    * @param {string|null} etag  - GET'ten gelen @odata.etag (opsiyonel)
    * @returns {{ status: number, targetStatus: number }}
    */
   async patchStyleStatus(styleId, isValid, etag = null) {
-    const targetStatus = isValid ? STATUS_VALID : STATUS_INVALID;
+    const targetStatus = this._resolveStatus(isValid);
     const url = `${this.config.plmBaseUrl}/STYLE(${styleId})`;
 
     console.log(`📤 [${this.config.tenantId}] PATCH STYLE(${styleId}) → Status: ${targetStatus} (${isValid ? 'GEÇERLİ' : 'GEÇERSİZ'})`);
@@ -95,5 +108,7 @@ class PLMPatchService {
 }
 
 module.exports = PLMPatchService;
-module.exports.STATUS_VALID   = STATUS_VALID;
-module.exports.STATUS_INVALID = STATUS_INVALID;
+module.exports.STATUS_VALID_TST   = STATUS_VALID_TST;
+module.exports.STATUS_INVALID_TST = STATUS_INVALID_TST;
+module.exports.STATUS_VALID_PRD   = STATUS_VALID_PRD;
+module.exports.STATUS_INVALID_PRD = STATUS_INVALID_PRD;

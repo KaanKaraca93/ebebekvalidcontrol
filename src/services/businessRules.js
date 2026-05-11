@@ -180,7 +180,10 @@ function checkActiveSku(style) {
 }
 
 // ─── Kural 3: POM ölçü değerleri ─────────────────────────────────────────────
-function checkPomMeasurements(style) {
+// GEÇİCİ OLARAK DEVRE DIŞI — operasyonu çok durdurucu olduğu için bekletildi.
+// Kural: tüm StyleMeasurementPomSizes.GradeMeasMetric > 0 olmalı.
+// Yeniden aktif etmek için checkPomMeasurements() çağrısını runBusinessRules içinde açın.
+function checkPomMeasurements(style) { // eslint-disable-line no-unused-vars
   const errors = [];
 
   for (const measurement of style.StyleMeasurements || []) {
@@ -229,7 +232,8 @@ function checkBarcode(stylePackData) {
 function runBusinessRules(style, stylePackData = []) {
   const variantErrors  = checkVariantType(style);
   const skuErrors      = checkActiveSku(style);
-  const pomErrors      = checkPomMeasurements(style);
+  // const pomErrors   = checkPomMeasurements(style); // GEÇİCİ DEVRE DIŞI
+  const pomErrors      = [];
   const barcodeErrors  = checkBarcode(stylePackData);
   const allErrors      = [...variantErrors, ...skuErrors, ...pomErrors, ...barcodeErrors];
 
@@ -242,7 +246,7 @@ function runBusinessRules(style, stylePackData = []) {
     details: {
       variantCheck:    { passed: variantErrors.length === 0,  errors: variantErrors },
       activeSkuCheck:  { passed: skuErrors.length === 0,     errors: skuErrors },
-      pomMeasureCheck: { passed: pomErrors.length === 0,     errors: pomErrors },
+      pomMeasureCheck: { passed: true, errors: [], note: 'Geçici olarak devre dışı' },
       barcodeCheck:    { passed: barcodeErrors.length === 0, errors: barcodeErrors }
     }
   };

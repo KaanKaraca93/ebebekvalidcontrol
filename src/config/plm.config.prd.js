@@ -4,6 +4,7 @@
  */
 
 const PLM_CONFIG_PRD = {
+  env: 'PRD',
   tenantId: 'HA286TFZ2VY8TRHK_PRD',
   clientName: 'FSH4',
 
