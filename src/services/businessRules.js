@@ -5,18 +5,18 @@
  *
  *   S  → Beden varyantlı :
  *          • En az 1 SizeCode ≠ 'NOSIZE' olan beden olmalı
- *          • Tüm renkler NOC olmalı (Code = 'NOC')
+ *          • Tüm renkler NOCOLOR olmalı (Code = 'NOCOLOR')
  *
  *   R  → Renk varyantlı :
- *          • En az 1 Code ≠ 'NOC' olan renk olmalı
+ *          • En az 1 Code ≠ 'NOCOLOR' olan renk olmalı
  *          • Tüm bedenler NOSIZE olmalı (SizeCode = 'NOSIZE')
  *
  *   RB → Renk + Beden :
- *          • En az 1 Code ≠ 'NOC' olan renk olmalı
+ *          • En az 1 Code ≠ 'NOCOLOR' olan renk olmalı
  *          • En az 1 SizeCode ≠ 'NOSIZE' olan beden olmalı
  *
  *   N  → Varyantsız :
- *          • Tüm renkler NOC olmalı
+ *          • Tüm renkler NOCOLOR olmalı
  *          • Tüm bedenler NOSIZE olmalı
  *
  * Kural 2 – Aktif SKU    : en az 1 aktif StyleSKU (Status=1, IsDeleted=0)
@@ -24,7 +24,7 @@
  * Kural 3 – POM ölçüleri : tüm StyleMeasurementPomSizes.GradeMeasMetric > 0
  */
 
-const NOC_CODE   = 'NOC';
+const NOC_CODE   = 'NOCOLOR';
 const NOSIZE_CODE = 'NOSIZE';
 
 // ─── Yardımcı: StyleSizeRanges → tüm StyleSizes (benzersiz SizeId'ler) ───────
@@ -96,11 +96,11 @@ function checkVariantType(style) {
           `Mevcut bedenler: ${sizeSummary(sizes)}`
         );
       }
-      // Renk tarafı: tümü NOC olmalı (sahte renk)
+      // Renk tarafı: tümü NOCOLOR olmalı (sahte renk)
       if (nonNocColors.length > 0) {
         errors.push(
-          `Varyant tipi S (Beden): Renk tarafında yalnızca NOC rengi olmalıdır. ` +
-          `NOC dışı renkler: ${colorSummary(nonNocColors)}`
+          `Varyant tipi S (Beden): Renk tarafında yalnızca NOCOLOR rengi olmalıdır. ` +
+          `NOCOLOR dışı renkler: ${colorSummary(nonNocColors)}`
         );
       }
       break;
@@ -109,7 +109,7 @@ function checkVariantType(style) {
       // Renk tarafı: en az 1 gerçek renk
       if (nonNocColors.length === 0) {
         errors.push(
-          `Varyant tipi R (Renk): NOC dışında en az bir renk olmalıdır. ` +
+          `Varyant tipi R (Renk): NOCOLOR dışında en az bir renk olmalıdır. ` +
           `Mevcut renkler: ${colorSummary(colorways)}`
         );
       }
@@ -125,7 +125,7 @@ function checkVariantType(style) {
     case 'RB':
       if (nonNocColors.length === 0) {
         errors.push(
-          `Varyant tipi RB (Renk+Beden): NOC dışında en az bir renk olmalıdır. ` +
+          `Varyant tipi RB (Renk+Beden): NOCOLOR dışında en az bir renk olmalıdır. ` +
           `Mevcut renkler: ${colorSummary(colorways)}`
         );
       }
@@ -140,12 +140,12 @@ function checkVariantType(style) {
     case 'N':
       if (nonNocColors.length > 0) {
         errors.push(
-          `Varyant tipi N (Varyantsız): Tüm renkler NOC olmalıdır. ` +
-          `NOC dışı renkler: ${colorSummary(nonNocColors)}`
+          `Varyant tipi N (Varyantsız): Tüm renkler NOCOLOR olmalıdır. ` +
+          `NOCOLOR dışı renkler: ${colorSummary(nonNocColors)}`
         );
       }
       if (nocColors.length === 0) {
-        errors.push(`Varyant tipi N (Varyantsız): NOC rengi bulunmalıdır.`);
+        errors.push(`Varyant tipi N (Varyantsız): NOCOLOR rengi bulunmalıdır.`);
       }
       if (nonNosizeSizes.length > 0) {
         errors.push(
